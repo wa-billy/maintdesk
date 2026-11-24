@@ -1,0 +1,8 @@
+node_modules/
+dist/
+uploads/
+.env
+AGENTS.md
+frontend-Readme.md
+backend-Readme.md
+CLAUDE.md

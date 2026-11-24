@@ -1,0 +1,59 @@
+name: maintdesk
+
+services:
+  db:
+    container_name: db
+    image: postgres:18.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER}"]
+      interval: 5s
+      retries: 20
+
+  backend:
+    container_name: backend
+    image: localhost:5000/maintdesk/backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      UPLOAD_DIR: ./uploads
+      PORT: 3000
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      retries: 5
+    networks:
+      - default
+      - edge
+
+  frontend:
+    container_name: frontend
+    image: localhost:5000/lablend/frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - default
+      - edge
+
+volumes:
+  db-data:
+  upolads:
+
+networks:
+  edge:
+    external: true

@@ -1,0 +1,23 @@
+{
+    local_certs
+}
+
+dns.{$DOMAIN} {
+    reverse_proxy dns:5380
+}
+
+registry.{$DOMAIN} {
+    reverse_proxy registry:5000
+}
+
+gitlab.{$DOMAIN} {
+    reverse_proxy 192.168.10.10:80
+}
+
+app.{$DOMAIN} {
+    reverse_proxy frontend:80
+}
+
+api.{$DOMAIN} {
+    reverse_proxy backend:3000
+}

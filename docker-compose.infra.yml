@@ -1,0 +1,54 @@
+services:
+  dns:
+    container_name: dns
+    image: technitium/dns-server:latest
+    restart: unless-stopped
+    ports:
+      - "192.168.10.20:53:53/udp"
+      - "192.168.10.20:53:53/tcp"
+      - "5380:5380/tcp"
+    environment:
+      DNS_SERVER_DOMAIN: dns.${DOMAIN}
+      DNS_SERVER_ADMIN:PASSWORD: Th@i1and
+      DNS_SERVER_FORWARDERS: 8.8.8.8,1.1.1.1
+    volumes:
+      - dns-config:/etc/dns
+    networks:
+      - edge
+    
+  caddy:
+    container_name: caddy
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./caddy:/etc/caddy:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+    
+  registry:
+    container_name: registry
+    image: registry:2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+    networks:
+      - edge
+
+volumes:
+  dns-config:
+  caddy-data:
+  caddy-config:
+  registry-data:
+
+networks:
+  edge:
+    name: edge

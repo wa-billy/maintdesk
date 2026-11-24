@@ -1,0 +1,37 @@
+stages: [build, test, push, deploy]
+
+variables:
+  BACKEND: localhost:5000/maintdesk/backend:$CI_COMMIT_SHORT_SHA
+  FRONTEND: localhost:5000/maintdesk/frontend:$CI_COMMIT_SHORT_SHA
+
+default:
+  image: docker:cli
+
+build:
+  stage: build
+  script:
+    - docker build -t $BACKEND backend
+    - docker build -t $FRONTEND frontend
+
+test:
+  stage: test
+  script:
+    - docker run --rm $BACKEND npm test
+
+push:
+  stage: push
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - docker push $BACKEND
+    - docker push $FRONTEND
+
+deploy:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  environment: production
+  script:
+    - cp compose.yaml /opt/app/compose.yaml
+    - cd /opt/app
+    - IMAGE_TAG=$CI_COMMIT_SHORT_SHA docker compose up -d --wait --wait-timeout 120
