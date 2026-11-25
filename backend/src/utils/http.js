@@ -1,18 +1,16 @@
 export class AppError extends Error {
   constructor(message, status, errors) {
     super(message);
-    this.status =  status;
+    this.status = status;
     this.errors = errors;
-  };
-};
+  }
+}
 
-export const ok = (res, data, message = 'seccess', meta) => {
-  res.status(200).json({ status: 'success', message, data, ...AppError(meta && { meta }) });
-};
+export const ok = (res, data, message = 'ดึงข้อมูลสำเร็จ', meta) =>
+  res.json({ status: 'success', message, data, ...(meta && { meta }) });
 
-export const created = (res, data, message = 'created') => {
+export const created = (res, data, message = 'สร้างข้อมูลสำเร็จ') =>
   res.status(201).json({ status: 'success', message, data });
-};
 
 export function paging(query) {
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);

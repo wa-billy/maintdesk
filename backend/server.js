@@ -1,8 +1,4 @@
-import { app } from "./src/app.js";
-import { initDb } from "./src/config/db.js";
-import { env } from "./src/config/env.js";
+import { app } from './src/app.js';
 
-await initDb();
-const server = app.listen(env.port, () => console.log(`API on: ${env.port}`));
-
-process.on('SIGTERM', () => server.close(() => pool.end()));
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`API on port ${port}`));

@@ -1,17 +1,22 @@
 import multer from 'multer';
 import { randomUUID } from 'node:crypto';
-import { env } from '../config/env.js';
-import { ERROR, UPLOAD } from '../../constants.js';
-import { AppError } from '../utils/http.js';
 
-export const upload = multer({
-  storage: multer.diskStorage({
-    destination: env.upload,
-    filename: (req, file, cb) => cb(null, randomUUID + UPLOAD.TYPES[file.mimetype]),
-  }),
-  limits: { fileSize: UPLOAD.MAX_BYTES, files: UPLOAD.MAX_FILE },
-  fileFilter: (req, file, cb) =>
-    UPLOAD.TYPES[file.mimetype]
-      ? cb(null, true)
-      : cb(new AppError(...ERROR.INVALID('file')))
+const EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'application/pdf': '.pdf' };
+const ALLOWED = {
+  report_attachment: ['image/jpeg', 'image/png', 'application/pdf'],
+  repair_image: ['image/jpeg', 'image/png'],
+  image: ['image/jpeg', 'image/png'],
+};
+
+const storage = multer.diskStorage({
+  destination: process.env.UPLOAD_DIR || 'uploads',
+  filename: (req, file, cb) => cb(null, randomUUID() + EXT[file.mimetype]),
 });
+
+export const upload = (field) => multer({
+  storage,
+  limits: { fileSize: (Number(process.env.MAX_FILE_SIZE_MB) || 5) * 1024 * 1024 },
+  fileFilter: (req, file, cb) => ALLOWED[field].includes(file.mimetype)
+    ? cb(null, true)
+    : cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname)),
+}).single(field);
